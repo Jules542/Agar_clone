@@ -13,6 +13,53 @@ body {
     border-radius: 50%;
     transform: translate(-50%, -50%);
 }
+
 .player {
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid black;
+    overflow: visible;
+}
+
+.player-name {
+    position: absolute;
+    bottom: 100%;
+    transform: translateY(-5px);
+    font-size: 12px;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#loginScreen {
+    border: 1px solid black;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+    justify-content: center;
+}
+
+#loginScreen input {
+    width: 30%;
+    padding: 7px;
+    font-size: 18px;
+}
+
+#loginScreen button {
+    width: 15%;
+    padding: 7px;
+    font-size: 18px;
+    cursor: pointer;
+    background-color: lightgreen;
+    color: white;
     border: 2px solid black;
 }

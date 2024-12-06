@@ -7,7 +7,11 @@
     <title>Agar.io Clone</title>
 </head>
 <body>
-    <div id="gameContainer"></div>
+    <div id="loginScreen">
+        <input type="text" id="usernameInput" placeholder="Entrez votre pseudo" />
+        <button id="joinButton">Rejoindre</button>
+    </div>
+    <div id="gameContainer" style="display: none"></div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>

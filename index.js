@@ -77,22 +77,29 @@ setInterval(() => {
 io.on('connection', (socket) => {
     console.log(`Un joueur s'est connecté : ${socket.id}`);
 
-    //Ajouter le joueur à la liste avec une position aléatoire et une couleur aléatoire
-    players[socket.id] = {
-        x: Math.random() * MAP_WIDTH,
-        y: Math.random() * MAP_HEIGHT,
-        size: 10,
-        color: getRandomColor(),
-    };
+    socket.on('joinGame', (data) => {
+        const { username } = data;
 
-    //Envoyer les informations actuelles du jeu (joueurs, nourriture) au nouveau joueur
-    socket.emit('currentPlayers', players);
-    socket.emit('foodUpdate', food);
+        //Ajouter le joueur à la liste avec une position aléatoire une couleur random et son pseudo
+        players[socket.id] = {
+            x: Math.random() * MAP_WIDTH,
+            y: Math.random() * MAP_HEIGHT,
+            size: 10,
+            color: getRandomColor(),
+            username: username || 'Joueur sans nom',
+        };
 
-    //Informer les autres joueurs qu'un nouveau joueur s'est connecté
-    socket.broadcast.emit('newPlayer', {
-        id: socket.id,
-        player: players[socket.id],
+        console.log(`${username} a rejoint la partie.`);
+
+        //Envoyer les informations actuelles du jeu (joueurs, nourriture) au nouveau joueur
+        socket.emit('currentPlayers', players);
+        socket.emit('foodUpdate', food);
+
+        //Informer les autres joueurs qu'un nouveau joeur s'est connecté
+        socket.broadcast.emit('newPlayer', {
+            id: socket.id,
+            player: players[socket.id],
+        });
     });
 
     //Gérer les mouvements du joueur
