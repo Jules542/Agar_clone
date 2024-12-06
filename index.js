@@ -49,21 +49,36 @@ generateFood();
 
 //Fonction pour vérifier si un joueur mange un aliment
 function checkFoodCollision(player) {
+    let foodChanged = false;
+
     food = food.filter((f) => {
         const distance = Math.sqrt(
             (player.x - f.x) ** 2 + (player.y - f.y) ** 2
         );
         if (distance < player.size) {
-            //augmenter la taille du joueur si il a mangé
+            //Augmenter la taille du joueur si il a mangé
             player.size += 1;
 
             //Générer un nouvel aliment pour remplacer celui qui a été mangé
             food.push(generateSingleFood());
+            foodChanged = true;
             return false;
         }
         return true;
     });
+
+    if (foodChanged) {
+        io.emit('foodUpdate', food);
+    }
 }
+
+function checkPlayerCollision(player1, player2) {
+    const distance = Math.sqrt(
+        (player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2
+    );
+    return distance < (player1.size + player2.size) / 2; // La distance doit être inférieure à la somme des rayons
+}
+
 
 //Ajouter de nouveaux aliments si besoin
 setInterval(() => {
@@ -105,20 +120,44 @@ io.on('connection', (socket) => {
     //Gérer les mouvements du joueur
     socket.on('playerMove', (data) => {
         if (players[socket.id]) {
-            //Mettre à jour la position du joueur
             players[socket.id].x = data.x;
             players[socket.id].y = data.y;
-
-            //Vérifier si le joueur mange un aliment
+    
+            //Vérifier les collisions avec la nourriture
             checkFoodCollision(players[socket.id]);
-
+    
+            //Vérifier les collisions avec d'autres joueurs
+            for (const otherId in players) {
+                if (otherId !== socket.id) {
+                    const otherPlayer = players[otherId];
+                    if (checkPlayerCollision(players[socket.id], otherPlayer)) {
+                        //Manger si plus gros
+                        if (players[socket.id].size > otherPlayer.size) {
+                            players[socket.id].size += otherPlayer.size;
+    
+                            //Deconnexion du joueur mangé
+                            io.to(otherId).emit('gameOver');                            
+                            console.log(`Le joueur ${players[socket.id].username} a mangé le joueur ${players[otherId].username}.`);
+                            delete players[otherId];                            
+                            io.emit('playerDisconnected', otherId);
+                        } 
+                        else if (players[socket.id].size < otherPlayer.size) {
+                            otherPlayer.size += players[socket.id].size;
+    
+                            socket.emit('gameOver');                            
+                            console.log(`Le joueur ${players[otherId].username} a mangé le joueur ${players[socket.id].username}.`);
+                            delete players[socket.id];                            
+                            io.emit('playerDisconnected', socket.id);
+                            return;
+                        }
+                    }
+                }
+            }
+    
             io.emit('playerMoved', {
                 id: socket.id,
                 ...players[socket.id],
             });
-
-            //Envoyer les aliments mis à jour au joueur
-            socket.emit('foodUpdate', food);
         }
     });
 

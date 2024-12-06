@@ -2,6 +2,7 @@ body {
     margin: 0;
     overflow: hidden;
     background-color: #f0f0f0;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
 }
 #gameContainer {
     position: relative;
@@ -46,6 +47,11 @@ body {
     gap: 25px;
     align-items: center;
     justify-content: center;
+}
+
+#loginScreen h1 {
+    color:lightgreen;
+    font-size: 38px;
 }
 
 #loginScreen input {

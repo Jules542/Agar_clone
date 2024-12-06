@@ -17,7 +17,7 @@ let speed = 3; //Vitesse maximale
 joinButton.addEventListener('click', () => {
     const username = usernameInput.value.trim();
     if (username) {
-        socket.emit('joinGame', { username }); // Envoyer le pseudo au serveur
+        socket.emit('joinGame', { username }); //Envoie du pseudo au  serv
         loginScreen.style.display = 'none';   // Cacher l'écran de connexion
         gameContainer.style.display = 'block'; // Afficher le jeu
     } else {
@@ -33,13 +33,16 @@ function createPlayerElement(player) {
     playerElement.className = 'player';
     playerElement.style.backgroundColor = player.color;
 
+    playerElement.style.width = `${player.size * 2}px`;
+    playerElement.style.height = `${player.size * 2}px`;
+    playerElement.style.left = `${player.x}px`;
+    playerElement.style.top = `${player.y}px`;
+
     const playerName = document.createElement('span');
     playerName.className = 'player-name';
-    console.log(player.username);
     playerName.textContent = player.username;
 
     playerElement.appendChild(playerName);
-
     gameContainer.appendChild(playerElement);
     return playerElement;
 }
@@ -63,6 +66,13 @@ socket.on('currentPlayers', (serverPlayers) => {
             players[id].element = createPlayerElement(players[id]);
         }
     }
+
+    //Tailles initiales des joueurs
+    const playerElement = players[id].element;
+    playerElement.style.width = `${players[id].size * 2}px`;
+    playerElement.style.height = `${players[id].size * 2}px`;
+    playerElement.style.left = `${players[id].x}px`;
+    playerElement.style.top = `${players[id].y}px`;
 });
 
 //Ajouter un nouveau joueur
@@ -99,6 +109,12 @@ socket.on('foodUpdate', (serverFood) => {
     });
 });
 
+//Alterter le joueur si il a perdu (a été mangé)
+socket.on('gameOver', () => {
+    alert('Vous avez perdu !');
+    location.reload();
+});
+
 //Supprimer un joueur deconnecté
 socket.on('playerDisconnected', (id) => {
     if (players[id] && players[id].element) {
@@ -106,12 +122,6 @@ socket.on('playerDisconnected', (id) => {
     }
     delete players[id];
 });
-
-window.addEventListener('mousemove', (event) => {
-    targetPosition.x = event.clientX + window.scrollX;
-    targetPosition.y = event.clientY + window.scrollY;
-});
-
 
 let keysPressed = {};
 
@@ -132,23 +142,20 @@ function updatePlayerPosition() {
     if (keysPressed['ArrowLeft']) dx -= speed;
     if (keysPressed['ArrowRight']) dx += speed;
 
-    // Calculer la distance totale pour éviter un déplacement trop rapide en diagonale
     const distance = Math.sqrt(dx ** 2 + dy ** 2);
     if (distance > 0) {
         const normalizedX = dx / distance;
         const normalizedY = dy / distance;
 
-        // Appliquer le mouvement en respectant la vitesse ajustée
-        let adjustedSpeed = speed / (currentPlayer.size / 10); // Vitesse réduite pour les joueurs plus gros
-        adjustedSpeed = Math.max(1, adjustedSpeed); // Vitesse minimale
+        let adjustedSpeed = speed / (currentPlayer.size / 10); //ajuster la vitesse pour les joueurs plus gros
+        adjustedSpeed = Math.max(1, adjustedSpeed);
 
         currentPlayer.x += normalizedX * adjustedSpeed;
         currentPlayer.y += normalizedY * adjustedSpeed;
 
-        // Envoyer la position mise à jour au serveur
         socket.emit('playerMove', { x: currentPlayer.x, y: currentPlayer.y });
 
-        // Mettre à jour la position de l'élément HTML du joueur
+        //Mettre à jour la position de la div du joueur
         const playerElement = players[socket.id].element;
         playerElement.style.left = `${currentPlayer.x}px`;
         playerElement.style.top = `${currentPlayer.y}px`;
